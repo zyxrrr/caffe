@@ -215,6 +215,16 @@ void Classifier::Preprocess(const cv::Mat& img,
 
   cv::Mat sample_normalized;
   cv::subtract(sample_float, mean_, sample_normalized);
+  float *p_out = (float*)sample_normalized.data;
+  float *p_in = (float*)sample_float.data;
+
+  for (int y = 0; y < 28; y++)
+  {
+	  for (int x = 0; x < 28; x++)
+	  {
+		  p_out[y * 28 + x] = p_in[y * 28 + x] / 256;
+	  }
+  }
 
   /* This operation will write the separate BGR planes directly to the
    * input layer of the network because it is wrapped by the cv::Mat
@@ -247,14 +257,19 @@ int main(int argc, char** argv) {
   std::cout << "---------- Prediction for "
             << file << " ----------" << std::endl;
 
-  cv::Mat img = cv::imread(file, -1);
+  cv::Mat img = cv::imread(file, 0);
+  //for (int i = 0; i < 28 * 28; i++)
+  //{
+	 // img.data[i] = img.data[i] / 256;
+  //}
   CHECK(!img.empty()) << "Unable to decode image " << file;
   std::vector<Prediction> predictions = classifier.Classify(img);
 
   /* Print the top N predictions. */
   for (size_t i = 0; i < predictions.size(); ++i) {
     Prediction p = predictions[i];
-    std::cout << std::fixed << std::setprecision(4) << p.second << " - \""
+	//printf("%f\n", p.second);
+    std::cout << std::fixed << std::setprecision(7) << p.second << " - \""
               << p.first << "\"" << std::endl;
   }
 }
